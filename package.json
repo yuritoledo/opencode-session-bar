@@ -1,0 +1,25 @@
+{
+  "name": "opencode-session-bar",
+  "version": "1.0.0",
+  "description": "OpenCode TUI sidebar plugin — list all sessions with quick switch and delete",
+  "type": "module",
+  "exports": {
+    "./tui": "./index.tsx"
+  },
+  "files": ["index.tsx", "package.json", "README.md"],
+  "keywords": ["opencode", "opencode-plugin", "sidebar", "sessions"],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yuritoledo/opencode-session-bar"
+  },
+  "engines": {
+    "opencode": ">=1.4.3"
+  },
+  "dependencies": {
+    "@opencode-ai/plugin": "^1.4.3",
+    "@opentui/core": "^0.2.2",
+    "@opentui/solid": "^0.2.2",
+    "solid-js": "^1.9.12"
+  }
+}
