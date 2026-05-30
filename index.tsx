@@ -14,6 +14,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   const sorted = () => (sessions() ?? [])
     .slice()
     .sort((a, b) => b.time.updated - a.time.updated)
+    .slice(0, 5)
 
   async function handleSwitch(id: string) {
     props.api.route.navigate("session", { sessionID: id })
