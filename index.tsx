@@ -1,15 +1,19 @@
 /** @jsxImportSource @opentui/solid */
-import { createResource, createSignal, For, Show } from "solid-js"
-import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui"
+import type { TuiPlugin, TuiPluginApi, TuiPluginModule } from "@opencode-ai/plugin/tui";
+import { createResource, createSignal, For, onCleanup, onMount, Show } from "solid-js";
 
 function View(props: { api: TuiPluginApi; sessionID: string }) {
   const theme = () => props.api.theme.current
   const [deleting, setDeleting] = createSignal<Set<string>>(new Set())
 
-    const [sessions, { refetch }] = createResource(async () => {
+  const [sessions, { refetch }] = createResource(async () => {
     const res = await props.api.client.session.list()
     return (res.data ?? []) as Array<{ id: string; title: string; time: { created: number; updated: number } }>
   })
+
+  const sorted = () => (sessions() ?? [])
+    .slice()
+    .sort((a, b) => b.time.updated - a.time.updated)
 
   async function handleSwitch(id: string) {
     props.api.route.navigate("session", { sessionID: id })
@@ -18,7 +22,7 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
   async function handleDelete(id: string) {
     setDeleting(prev => new Set(prev).add(id))
     try {
-      await props.api.client.session.delete({ path: { id } })
+      await props.api.client.session.delete({ sessionID: id })
       refetch()
     } catch {
       props.api.ui.toast({ variant: "error", message: "Failed to delete session" })
@@ -26,45 +30,49 @@ function View(props: { api: TuiPluginApi; sessionID: string }) {
       setDeleting(prev => { const next = new Set(prev); next.delete(id); return next })
     }
   }
-
-  const sorted = () => (sessions() ?? [])
-    .slice()
-    .sort((a, b) => b.time.updated - a.time.updated)
+  onMount(() => {
+    const unsub1 = props.api.event.on("session.updated", () => refetch())
+    const unsub2 = props.api.event.on("session.deleted", () => refetch())
+    const unsub3 = props.api.event.on("session.created", () => refetch())
+    onCleanup(() => { unsub1(); unsub2(); unsub3() })
+  })
 
   return (
     <box>
-      <text fg={theme().text}>Sessions</text>
+      <text fg={theme().text}>
+        <strong>Latest sessions</strong>
+      </text>
       <Show when={sessions.loading}>
         <text fg={theme().textMuted}>loading...</text>
       </Show>
-      <For each={sorted()}>
-        {(session) => {
-          const active = session.id === props.sessionID
-          const isDeleting = deleting().has(session.id)
-          return (
-            <box flexDirection="row" gap={1}>
-              <text
-                fg={active ? theme().accent : theme().text}
-                attributes={{ bold: active }}
-                onMouseDown={() => !active && handleSwitch(session.id)}
-              >
-                {active ? ">" : " "} {session.title}
-              </text>
-              <Show when={!isDeleting}>
+      <box>
+        <For each={sorted()}>
+          {(session) => {
+            const isDeleting = deleting().has(session.id)
+            return (
+              <box flexDirection="row" justifyContent="space-between" overflow="hidden">
                 <text
                   fg={theme().textMuted}
-                  onMouseDown={() => handleDelete(session.id)}
+                  flexGrow={1}
                 >
-                  [x]
+                  {session.title.slice(0, 30)}
                 </text>
-              </Show>
-              <Show when={isDeleting}>
-                <text fg={theme().textMuted}>...</text>
-              </Show>
-            </box>
-          )
-        }}
-      </For>
+                <Show when={!isDeleting}>
+                  <text
+                    fg={theme().textMuted}
+                    onMouseDown={() => handleDelete(session.id)}
+                  >
+                    [x]
+                  </text>
+                </Show>
+                <Show when={isDeleting}>
+                  <text fg={theme().textMuted}>...</text>
+                </Show>
+              </box>
+            )
+          }}
+        </For>
+      </box>
     </box>
   )
 }
