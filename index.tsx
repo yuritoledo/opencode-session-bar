@@ -90,7 +90,7 @@ const tui: TuiPlugin = async (api) => {
 }
 
 const plugin: TuiPluginModule & { id: string } = {
-  id: "opencode-session-bar",
+  id: "session-bar",
   tui,
 }
 
