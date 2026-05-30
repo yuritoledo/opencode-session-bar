@@ -1,5 +1,5 @@
 {
-  "name": "opencode-session-bar",
+  "name": "session-bar",
   "version": "1.3.0",
   "description": "OpenCode TUI sidebar plugin — list all sessions with quick switch and delete",
   "type": "module",
@@ -20,7 +20,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yuritoledo/opencode-session-bar.git"
+    "url": "git+https://github.com/yuritoledo/session-bar.git"
   },
   "engines": {
     "opencode": ">=1.4.3"
